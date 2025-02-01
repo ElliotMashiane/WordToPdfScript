@@ -13,45 +13,42 @@ def select_folder(title="Select Folder"):
 
 def convert_doc_to_docx(doc_path, word):
     """Converts .doc (Word 97-2003) to .docx format."""
-    doc_path = os.path.normpath(doc_path)  # Normalize path to prevent issues
+    doc_path = os.path.normpath(doc_path)  # Normalize path
 
     if not os.path.exists(doc_path):
-        print(f"❌ Error: File does not exist: {doc_path}")
-        return None  # Skip conversion if file is missing
+        print(f"❌ Error: File not found: {doc_path}")
+        return None  # Skip missing files
 
     try:
-        print(f"📂 Opening file: {doc_path}")  # Debugging step
+        print(f"📂 Converting .doc to .docx: {doc_path}")
         doc = word.Documents.Open(doc_path)
-        docx_path = doc_path + "x"  # Change ".doc" to ".docx"
-        doc.SaveAs(docx_path, FileFormat=16)  # 16 is the format code for .docx
+        docx_path = doc_path + "x"  # Append 'x' to get .docx
+        doc.SaveAs(docx_path, FileFormat=16)  # 16 = .docx format
         doc.Close()
-        print(f"✅ Converted to .docx: {docx_path}")
         return docx_path
     except Exception as e:
-        print(f"❌ Failed to open {doc_path}: {e}")
+        print(f"❌ Failed to convert {doc_path} to .docx: {e}")
         return None
 
 
-def convert_docx_to_pdf(input_folder, output_folder):
-    """Converts all .doc and .docx files in the input_folder to PDFs in output_folder."""
+def convert_to_pdf(input_folder, output_folder):
+    """Converts all .doc and .docx files in input_folder to PDFs in output_folder."""
     if not os.path.exists(output_folder):
-        # Create the output folder if it doesn't exist
-        os.makedirs(output_folder)
+        os.makedirs(output_folder)  # Create output folder if needed
 
     word = comtypes.client.CreateObject("Word.Application")
-    word.Visible = False  # Run Word in the background
+    word.Visible = False  # Run Word in background
 
     for file in os.listdir(input_folder):
         doc_path = os.path.join(input_folder, file)
         doc_path = os.path.normpath(doc_path)  # Normalize path
 
-        print(f"🔍 Processing: {doc_path}")  # Debugging step
-
         if not os.path.exists(doc_path):
             print(f"❌ Skipping missing file: {doc_path}")
             continue
 
-        if file.endswith(".doc"):  # Convert .doc to .docx first
+        # Convert .doc to .docx first
+        if file.endswith(".doc") and not file.endswith(".docx"):
             doc_path = convert_doc_to_docx(doc_path, word)
             if doc_path is None:
                 continue  # Skip if conversion failed
@@ -64,8 +61,7 @@ def convert_docx_to_pdf(input_folder, output_folder):
             try:
                 print(f"📄 Converting to PDF: {pdf_path}")
                 doc = word.Documents.Open(doc_path)
-                # 17 is the PDF format code
-                doc.SaveAs(pdf_path, FileFormat=17)
+                doc.SaveAs(pdf_path, FileFormat=17)  # 17 = PDF format
                 doc.Close()
                 print(f"✅ Converted: {file} → {pdf_path}")
             except Exception as e:
@@ -76,10 +72,10 @@ def convert_docx_to_pdf(input_folder, output_folder):
 
 
 # Select input and output folders
-input_folder = select_folder("Select the folder containing Word documents")
-output_folder = select_folder("Select the folder to save PDFs")
+input_folder = select_folder("Select folder containing Word documents")
+output_folder = select_folder("Select folder to save PDFs")
 
 if input_folder and output_folder:
-    convert_docx_to_pdf(input_folder, output_folder)
+    convert_to_pdf(input_folder, output_folder)
 else:
     print("🚫 Operation cancelled.")
